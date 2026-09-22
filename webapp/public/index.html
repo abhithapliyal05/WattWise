@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WattWise</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" fill="currentColor" />
+        </svg>
+      </span>
+      <div>
+        <h1>WattWise</h1>
+        <p>Estimate and reduce the energy cost of your C++ programs, block by block.</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="panel editor-panel">
+      <div class="panel-head">
+        <label for="benchmark-select">Load a sample program</label>
+        <select id="benchmark-select">
+          <option value="">— custom source —</option>
+        </select>
+      </div>
+
+      <textarea id="source" spellcheck="false" placeholder="Paste a small C++ program here..."></textarea>
+
+      <div class="options-row">
+        <label class="checkbox">
+          <input type="checkbox" id="opt-toggle" />
+          <span>
+            Optimize hot code
+            <span
+              class="info-dot"
+              tabindex="0"
+              data-tooltip="Rewrites the most expensive lines using strength reduction (e.g. multiply → shift), common subexpression elimination, and loop-invariant code motion — then verifies the output didn't change."
+              >?</span
+            >
+          </span>
+        </label>
+        <label class="checkbox">
+          <input type="checkbox" id="both-toggle" />
+          <span>
+            Dynamic profile
+            <span
+              class="info-dot"
+              tabindex="0"
+              data-tooltip="Actually runs the program and measures real execution counts, instead of only estimating them from loop structure. Useful when trip counts depend on input data."
+              >?</span
+            >
+          </span>
+        </label>
+      </div>
+
+      <button id="analyze-btn">
+        <span class="btn-label">Analyze</span>
+        <span class="btn-spinner" aria-hidden="true"></span>
+      </button>
+      <p id="status-line" class="status-line" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="panel results-panel">
+      <div id="error-banner" class="error-banner hidden" role="alert"></div>
+
+      <div id="empty-state" class="empty-state">
+        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+        </svg>
+        <p>Run an analysis to see the energy report here.</p>
+        <p class="empty-hint">Energy is reported in <strong>pJ</strong> (picojoules) — relative model units for comparing code, not a measurement from real hardware.</p>
+      </div>
+
+      <div id="results" class="hidden">
+        <div class="summary-cards" id="summary-cards"></div>
+
+        <p id="dynamic-note" class="dynamic-note hidden">
+          Charts and tables below show the static estimate. The dynamic (interpreted)
+          profile and the static-vs-dynamic hotspot agreement are in the raw text
+          report at the bottom.
+        </p>
+
+        <div class="chart-card">
+          <h2>Energy by operation class</h2>
+          <p class="section-hint">Where the estimated energy actually goes, grouped by instruction type.</p>
+          <div class="chart-canvas-wrap">
+            <canvas id="category-chart"></canvas>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <h2>Hotspot basic blocks</h2>
+          <p class="section-hint">The blocks of code responsible for the most energy — optimize these first.</p>
+          <div class="table-wrap"><table id="blocks-table"></table></div>
+        </div>
+
+        <div class="table-card">
+          <h2>Loops</h2>
+          <p class="section-hint">Loops ranked by total energy across all of their iterations combined.</p>
+          <div class="table-wrap"><table id="loops-table"></table></div>
+        </div>
+
+        <div class="table-card hidden" id="passes-card">
+          <h2>What changed</h2>
+          <p class="section-hint">Automatic rewrites applied to the hot lines above, one entry per change.</p>
+          <ul id="passes-list"></ul>
+        </div>
+
+        <details class="raw-report">
+          <summary>Raw text report</summary>
+          <pre id="raw-report"></pre>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

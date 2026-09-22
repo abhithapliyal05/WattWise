@@ -1,0 +1,13 @@
+{
+  "name": "wattwise-webapp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local web frontend for the WattWise energy profiler CLI",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

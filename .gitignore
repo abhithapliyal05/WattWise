@@ -1,3 +1,4 @@
 build/
 *.o
 wwt_costs.txt
+webapp/node_modules/
