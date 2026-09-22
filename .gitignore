@@ -1,0 +1,3 @@
+build/
+*.o
+wwt_costs.txt
