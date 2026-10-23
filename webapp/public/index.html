@@ -2,128 +2,162 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
   <title>WattWise</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
-    rel="stylesheet"
-  />
   <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" fill="currentColor" />
-        </svg>
-      </span>
-      <div>
+  <a class="skip-link" href="#report">Skip to results</a>
+
+  <header class="bar" id="bar">
+    <div class="bar-inner">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" fill="currentColor" />
+          </svg>
+        </span>
         <h1>WattWise</h1>
-        <p>Estimate and reduce the energy cost of your C++ programs, block by block.</p>
       </div>
+      <p class="tagline">Energy estimates for C++, block by block</p>
     </div>
   </header>
 
-  <main class="layout">
-    <section class="panel editor-panel">
-      <div class="panel-head">
-        <label for="benchmark-select">Load a sample program</label>
-        <select id="benchmark-select">
-          <option value="">— custom source —</option>
-        </select>
+  <main class="shell" id="shell">
+    <section class="card source-pane" id="source-pane" aria-labelledby="source-title">
+      <div class="pane-head">
+        <h2 id="source-title">Source</h2>
+        <div class="select-wrap">
+          <label class="sr-only" for="benchmark-select">Load a sample program</label>
+          <select id="benchmark-select">
+            <option value="">Custom source</option>
+          </select>
+        </div>
       </div>
 
-      <textarea id="source" spellcheck="false" placeholder="Paste a small C++ program here..."></textarea>
-
-      <div class="options-row">
-        <label class="checkbox">
-          <input type="checkbox" id="opt-toggle" />
-          <span>
-            Optimize hot code
-            <span
-              class="info-dot"
-              tabindex="0"
-              data-tooltip="Rewrites the most expensive lines using strength reduction (e.g. multiply → shift), common subexpression elimination, loop-invariant code motion, redundant-load elimination and dead-code removal — then verifies the output didn't change."
-              >?</span
-            >
-          </span>
-        </label>
-        <label class="checkbox">
-          <input type="checkbox" id="both-toggle" />
-          <span>
-            Dynamic profile
-            <span
-              class="info-dot"
-              tabindex="0"
-              data-tooltip="Actually runs the program and measures real execution counts, instead of only estimating them from loop structure. Useful when trip counts depend on input data."
-              >?</span
-            >
-          </span>
-        </label>
+      <div class="editor">
+        <label class="sr-only" for="source">C++ source</label>
+        <textarea id="source" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off"
+          placeholder="Paste a small C++ program, or load a sample above."></textarea>
+        <p class="editor-meta">
+          <span id="source-count">0 lines</span>
+          <span class="dot" aria-hidden="true">·</span>
+          <span>Tab indents</span>
+          <span class="dot hide-touch" aria-hidden="true">·</span>
+          <span class="hide-touch"><kbd id="kbd-mod">Ctrl</kbd> <kbd>Enter</kbd> analyzes</span>
+        </p>
       </div>
 
-      <button id="analyze-btn">
-        <span class="btn-label">Analyze</span>
-        <span class="btn-spinner" aria-hidden="true"></span>
-      </button>
-      <p id="status-line" class="status-line" role="status" aria-live="polite"></p>
+      <fieldset class="options">
+        <legend class="sr-only">Analysis options</legend>
+        <label class="option">
+          <span class="option-text">
+            <span class="option-title" id="opt-title">Optimize hot code</span>
+            <span class="option-desc" id="opt-desc">Rewrites the most expensive lines, then checks that the program's output is unchanged.</span>
+          </span>
+          <input type="checkbox" role="switch" class="switch" id="opt-toggle" aria-labelledby="opt-title" aria-describedby="opt-desc" />
+        </label>
+        <label class="option">
+          <span class="option-text">
+            <span class="option-title" id="both-title">Dynamic profile</span>
+            <span class="option-desc" id="both-desc">Also runs the program to count real executions, instead of relying on loop analysis alone.</span>
+          </span>
+          <input type="checkbox" role="switch" class="switch" id="both-toggle" aria-labelledby="both-title" aria-describedby="both-desc" />
+        </label>
+      </fieldset>
+
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="analyze-btn">
+          <span class="btn-spinner" aria-hidden="true"></span>
+          <span class="btn-label">Analyze</span>
+        </button>
+        <p id="status-line" class="status-line" role="status" aria-live="polite"></p>
+      </div>
     </section>
 
-    <section class="panel results-panel">
-      <div id="error-banner" class="error-banner hidden" role="alert"></div>
+    <div class="splitter" id="splitter" role="separator" aria-orientation="vertical" aria-label="Resize source and report"
+      aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" tabindex="0">
+      <span class="splitter-grip"></span>
+    </div>
 
-      <div id="empty-state" class="empty-state">
-        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+    <section class="report-pane" id="report" aria-labelledby="report-title">
+      <h2 class="sr-only" id="report-title">Energy report</h2>
+
+      <div id="error-banner" class="alert" role="alert" hidden>
+        <svg class="alert-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="9.25" stroke="currentColor" stroke-width="1.6" />
+          <path d="M12 7.5v5.5M12 16.2v.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
         </svg>
-        <p>Run an analysis to see the energy report here.</p>
-        <p class="empty-hint">Energy is reported in <strong>pJ</strong> (picojoules) — relative model units for comparing code, not a measurement from real hardware.</p>
+        <div class="alert-body">
+          <p class="alert-title" id="error-title"></p>
+          <pre class="alert-detail" id="error-detail"></pre>
+        </div>
       </div>
 
-      <div id="results" class="hidden">
-        <div class="summary-cards" id="summary-cards"></div>
+      <div id="empty-state" class="card empty">
+        <svg class="empty-icon" viewBox="0 0 24 24" width="44" height="44" fill="none" aria-hidden="true">
+          <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" />
+        </svg>
+        <h3>See where your program spends its energy</h3>
+        <p>Paste some C++ and press Analyze. WattWise ranks the hottest blocks and loops, and can rewrite them to use less.</p>
+        <div class="chips" id="example-chips" hidden>
+          <p class="chips-label">Try an example</p>
+          <div class="chips-row" id="example-chips-row"></div>
+        </div>
+      </div>
 
-        <p id="dynamic-note" class="dynamic-note hidden">
-          Charts and tables below show the static estimate. The dynamic (interpreted)
-          profile and the static-vs-dynamic hotspot agreement are in the raw text
-          report at the bottom.
+      <div id="results" class="results" hidden>
+        <section class="card hero" id="hero" data-rise></section>
+
+        <p id="dynamic-note" class="note" data-rise hidden>
+          The charts and tables show the static estimate. The measured (dynamic) profile and the static-versus-dynamic
+          hotspot agreement are in the raw report at the bottom.
         </p>
 
-        <div class="chart-card">
-          <h2>Energy by operation class</h2>
-          <p class="section-hint">Where the estimated energy actually goes, grouped by instruction type.</p>
-          <div class="chart-canvas-wrap">
-            <canvas id="category-chart"></canvas>
+        <section class="card block" id="sec-categories" data-rise>
+          <div class="block-head">
+            <h3>Where the energy goes</h3>
+            <p>Estimated energy grouped by the kind of operation.</p>
+            <ul class="legend" id="cat-legend" hidden>
+              <li><span class="swatch swatch-before"></span>Before</li>
+              <li><span class="swatch swatch-after"></span>After</li>
+            </ul>
           </div>
-        </div>
+          <ul class="cat-list" id="category-bars"></ul>
+        </section>
 
-        <div class="table-card">
-          <h2>Hotspot basic blocks</h2>
-          <p class="section-hint">The blocks of code responsible for the most energy — optimize these first.</p>
+        <section class="card block" id="sec-blocks" data-rise>
+          <div class="block-head">
+            <h3>Hotspots</h3>
+            <p id="blocks-hint">The basic blocks that use the most energy. Start optimizing here.</p>
+          </div>
           <div class="table-wrap"><table id="blocks-table"></table></div>
-        </div>
+        </section>
 
-        <div class="table-card">
-          <h2>Loops</h2>
-          <p class="section-hint">Loops ranked by total energy across all of their iterations combined.</p>
+        <section class="card block" id="sec-loops" data-rise>
+          <div class="block-head">
+            <h3>Loops</h3>
+            <p>Total energy across every iteration, including inner loops.</p>
+          </div>
           <div class="table-wrap"><table id="loops-table"></table></div>
-        </div>
+        </section>
 
-        <div class="table-card hidden" id="passes-card">
-          <h2>What changed</h2>
-          <p class="section-hint">Automatic rewrites applied to the hot lines above, one entry per change.</p>
-          <ul id="passes-list"></ul>
-        </div>
+        <section class="card block" id="passes-card" data-rise hidden>
+          <div class="block-head">
+            <h3>What changed</h3>
+            <p id="passes-hint">Each rewrite the optimizer applied to the hot lines.</p>
+          </div>
+          <ul class="changes" id="passes-list"></ul>
+        </section>
 
-        <details class="raw-report">
+        <details class="card disclosure" id="raw-details" data-rise>
           <summary>Raw text report</summary>
           <pre id="raw-report"></pre>
         </details>
       </div>
+
+      <p class="footnote">Energy is reported in pJ (picojoules) of a relative cost model. Use it to compare code and rank hotspots, not as a hardware measurement.</p>
     </section>
   </main>
 
