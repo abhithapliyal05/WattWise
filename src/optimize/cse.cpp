@@ -1,11 +1,14 @@
-// cse.cpp — local common-subexpression elimination (value numbering per
-// basic block over pure expressions).
+// cse.cpp — common-subexpression elimination over extended basic blocks
+// (value numbering over pure expressions).
 //
 // Within a block, `t2 = a op b` is removed when an earlier `t1 = a op b`
 // is still available (neither a nor b redefined since). All uses of t2 in the
 // function are then renamed to t1. This is safe because both are
 // single-assignment temporaries and t1's definition dominates t2's.
-// Memory loads are not CSE'd here: that is redundant-load elimination (R3).
+// A block entered only from one earlier block (no join, no back-edge) inherits
+// that block's available expressions, so the scope is a tree of blocks rather
+// than a single block; at a join or a loop header the set starts empty.
+// Memory loads are not CSE'd here: see redundant-load elimination (rle.cpp).
 #include <map>
 #include <tuple>
 #include "wattwise/cfg.hpp"
@@ -22,9 +25,13 @@ PassStats localCSE(IRFunc& f, const HotSet& hot) {
     CFG g = buildCFG(f);
     std::map<std::string, Operand> rename;   // eliminated temp -> surviving temp
 
+    using Key = std::tuple<Op, Operand, Operand>;
+    using Avail = std::map<Key, Operand>;
+    std::vector<Avail> out(g.blocks.size());   // available set at the end of each block
+
     for (auto& b : g.blocks) {
-        using Key = std::tuple<Op, Operand, Operand>;
-        std::map<Key, Operand> avail;
+        Avail avail;
+        if (b.pred.size() == 1 && b.pred[0] < b.id && g.blocks[b.pred[0]].reachable) avail = out[b.pred[0]];
         for (int i = b.begin; i < b.end; ++i) {
             Quad& q = f.code[i];
             // apply renames first so keys see canonical operands
@@ -58,6 +65,7 @@ PassStats localCSE(IRFunc& f, const HotSet& hot) {
                 }
             }
         }
+        out[b.id] = std::move(avail);
     }
     // rename remaining uses in the whole function (uses in later blocks)
     for (auto& q : f.code)

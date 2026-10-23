@@ -35,7 +35,7 @@ Energy analysis
   --costs FILE        override the energy cost table
   --top N             rows in hotspot tables (default 8)
 Optimisation
-  --opt[=LIST]        run passes (sr,cse,licm | all; default all), re-profile,
+  --opt[=LIST]        run passes (sr,cse,licm,rle,dce | all; default all), re-profile,
                       and verify output is unchanged
   --opt-all           optimise everything, not only hot code
   --coverage X        hot set = lines covering X of energy (default 0.90)

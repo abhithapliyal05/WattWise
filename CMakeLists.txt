@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(WattWise VERSION 0.2.0 LANGUAGES CXX)
+project(WattWise VERSION 0.3.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -26,6 +26,8 @@ add_library(wattwise_core
   src/optimize/strength.cpp  # M3
   src/optimize/cse.cpp       # M3
   src/optimize/licm.cpp      # M3
+  src/optimize/rle.cpp       # M3
+  src/optimize/dce.cpp       # M3
   src/interpreter.cpp      # M4
   src/report.cpp           # M4
 )

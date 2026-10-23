@@ -142,7 +142,7 @@ PassStats licm(IRFunc& f, const HotSet& hot) {
 std::vector<PassStats> optimize(IRProgram& p, const HotSet& hot, const std::vector<std::string>& passes) {
     std::vector<std::string> seq;
     for (auto& s : passes) {
-        if (s == "all") { seq.insert(seq.end(), {"sr", "cse", "licm", "cse"}); }
+        if (s == "all") { seq.insert(seq.end(), {"sr", "cse", "licm", "cse", "rle", "dce"}); }
         else seq.push_back(s);
     }
     std::vector<PassStats> stats;
@@ -153,7 +153,9 @@ std::vector<PassStats> optimize(IRProgram& p, const HotSet& hot, const std::vect
             if (name == "sr") s = strengthReduce(f, hot);
             else if (name == "cse") s = localCSE(f, hot);
             else if (name == "licm") s = licm(f, hot);
-            else throw std::runtime_error("unknown pass '" + name + "' (available: sr, cse, licm, all)");
+            else if (name == "rle") s = loadElim(f, hot);
+            else if (name == "dce") s = deadCode(f, hot);
+            else throw std::runtime_error("unknown pass '" + name + "' (available: sr, cse, licm, rle, dce, all)");
             total.pass = s.pass;
             total.changes += s.changes;
             for (auto& l : s.log) total.log.push_back(f.name + ": " + l);

@@ -265,6 +265,8 @@ const PASS_LABELS = {
   'strength-reduction': 'Faster op',
   'local-cse': 'Reused value',
   licm: 'Hoisted out of loop',
+  'redundant-load-elim': 'Reused load',
+  'dead-code-elim': 'Removed dead code',
 };
 
 function renderPasses(passes) {
