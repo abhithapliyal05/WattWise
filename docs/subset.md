@@ -61,5 +61,6 @@ expressions (literals and `const int` globals/locals, folded at compile time).
 | Operators | `>>`, `&`, `|`, `^`, `~`, `++`/`--` inside expressions | no side effects inside expressions, so every quad has one effect |
 | I/O | `cin`, `printf` | output only via `cout <<`; I/O energy is out of scope |
 
-Twelve of the 33 programs in `tests/invalid/` are valid C++ that `g++` accepts but
-WattWise rejects on purpose; `scripts/invalidtest.sh` labels them "subset rule".
+Fifteen of the 33 programs in `tests/invalid/` are accepted by `g++ -fsyntax-only` (g++ 13.2),
+either because they are valid C++ outside the subset or because g++ only warns, but
+WattWise rejects them on purpose; `scripts/invalidtest.sh` labels them "subset rule".
